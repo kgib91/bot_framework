@@ -1,9 +1,5 @@
 alert('test');
 
-function testFunc() { 
+export function testFunc() { 
   alert('test2');
 }
-
-export {
-  testFunc
-};
