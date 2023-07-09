@@ -190,9 +190,11 @@ async function initialize_ui_async() {
   style.innerHTML = bot_ui_stylesheet;
   document.head.appendChild(style);
   
-  bot_ui_document_root = document.body;
+  bot_ui_document_root = document.createElement('div');
   bot_ui_modal_root = document.createElement('div');
-  bot_ui_document_root.append(bot_ui_modal_root);
+  
+  document.body.append(bot_ui_document_root);
+  document.body.append(bot_ui_modal_root);
   
   m.mount(bot_ui_document_root, BotUIComponent);
 }
