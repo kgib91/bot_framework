@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.1';
+const BOT_VERSION = '0.0.2';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -117,7 +117,6 @@ function BotPopupModalComponent(node) {
     editor.session.setMode("ace/mode/javascript");
     
     // Ensure autocomplete is enabled
-    ace.require("ace/ext/language_tools");
     editor.setOptions({
       enableBasicAutocompletion: true,
       enableSnippets: true,
@@ -242,11 +241,24 @@ async function initialize_ui_async() {
 }
 
 async function import_ace_async() {
-  await import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
-  // extensions
-  await import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ext-language_tools.js');
-  // configure
-  ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
+    return new Promise((resolve, reject) => {
+        requirejs.config({
+            baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/',
+            paths: {
+                'ace': 'ace'
+            }
+        });
+
+        requirejs(['ace/ace'], function(ace) {
+            try {
+                ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
+                ace.require("ace/ext/language_tools"); // Load extension after ace is loaded
+                resolve(ace); // Resolve the promise with the ace object
+            } catch (e) {
+                reject(e); // Reject the promise if there's an error
+            }
+        }, reject); // Also reject the promise on requirejs errors
+    });
 }
 
 export async function initialize_async(bot_id) {
@@ -255,6 +267,7 @@ export async function initialize_async(bot_id) {
   console.info('opening local databases');
   await initialize_databases_async(bot_id);
   console.info('mounting bot framework ui');
+  await import('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js');
   await import('https://unpkg.com/mithril/mithril.js');
   await import('https://kit.fontawesome.com/8768117172.js');
   await import_ace_async();
