@@ -106,46 +106,65 @@ function BotUIFunctionEditorComponent(node) {
 
 
 function BotPopupModalComponent(node) {
+  let editor = null;
+
+  // Initialize the editor when the modal is created
+  function oncreate(vnode) {
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/javascript");
+    editor.setValue(node.attrs.data.code || ''); // Load existing code or empty string
+  }
+
+  // Save function that can be passed down to handle saving logic
+  function save() {
+    node.attrs.onsave(editor.getValue());
+    m.mount(bot_ui_modal_root, null); // Unmount the editor modal after saving
+  }
+
+  // Close without saving
+  function close() {
+    m.mount(bot_ui_modal_root, null);
+  }
+
   return {
+    oncreate,
     view: () => {
-      return m('div', { id: 'botmodal' }, 'test');
+      return m('div', { id: 'botmodal' }, [
+        m('div', { style: 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background: white; box-shadow: 0 0 15px rgba(0,0,0,0.2);' }, [
+          m('div', { id: 'editor', style: 'height: 200px;' }), // Editor placeholder
+          m('button', { onclick: save }, 'Save'),
+          m('button', { onclick: close }, 'Close')
+        ])
+      ]);
     }
   };
 }
 
+
 function BotUIFunctionComponent(node) {
-  let editor = null;
   let status = 'idle';
-  
-  this.is_editor_active = () => !!editor;
-  
-  this.save_edited_data = () => {
-    console.log('do save');
-  }
-  
-  this.open_editor = () => {
-    editor = {
-      view: () => {
-        return m(BotPopupModalComponent, { onclose: this.save_edited_data.bind(this) }, [
-              m(BotUIFunctionEditorComponent, {target: node.attrs.data})
-        ]);
-      }
-    };
-    console.log('open editor:', editor);
-    m.mount(bot_ui_modal_root, editor);
+
+  this.save_edited_data = (newCode) => {
+    console.log('do save', newCode);
+    // Implement saving logic here, possibly updating IndexedDB
+    db_store_cmd_async(bot_db, bot_db_function_store_name, 'put', { ...node.attrs.data, code: newCode }).then(() => {
+      console.log('Saved successfully');
+    });
   };
-  
+
+  this.open_editor = () => {
+    m.mount(bot_ui_modal_root, m(BotPopupModalComponent, { data: node.attrs.data, onsave: this.save_edited_data }));
+  };
+
   return {
-    oninit: () => {
-      
-    },
     view: () => {
       return m('div', { class: `pill ${status}` }, [
-        m('button', { }, node.attrs.data.name),
+        m('button', {}, node.attrs.data.name),
         m('button', { onclick: this.open_editor.bind(this) }, m('i', { class: 'fa-solid fa-pencil fa-sm' }))
       ]);
     }
-  }
+  };
 }
 
 function BotUIComponent() {
@@ -211,6 +230,7 @@ export async function initialize_async(bot_id) {
   console.info('mounting bot framework ui');
   await import('https://unpkg.com/mithril/mithril.js');
   await import('https://kit.fontawesome.com/8768117172.js');
+  await import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
   await initialize_ui_async();
   console.log('end initializing bot');
 }
