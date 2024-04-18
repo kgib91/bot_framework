@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.6';
+const BOT_VERSION = '0.0.7';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -272,19 +272,22 @@ function load_script_async(url) {
 }
 
 function wait_for_global_async(name, timeout = 10000, interval = 200) {
-    return new Promise((resolve, reject) => {
+   return new Promise((resolve, reject) => {
         let elapsed = 0;
         const check = () => {
-            if (window[name] !== undefined) {
-                resolve(window[name]);
-            } else if (elapsed < timeout) {
-                elapsed += interval;
-                setTimeout(check, interval);
-            } else {
-                reject(new Error(`${name} did not load within ${timeout} ms`));
-            }
+            setTimeout(() => {  // Use setTimeout to defer the check
+                if (window[name] !== undefined) {
+                    resolve(window[name]);
+                } else if (elapsed < timeout) {
+                    elapsed += interval;
+                    check();  // Recursive call to continue checking
+                } else {
+                    reject(new Error(`${name} did not load within ${timeout} ms`));
+                }
+            }, interval);
         };
-        check();
+
+        check();  // Initial call to start the checking process
     });
 }
 
