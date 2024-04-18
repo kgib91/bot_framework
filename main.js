@@ -1,3 +1,5 @@
+const VERSION = '0.0.1';
+
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
 const bot_db_version = 1;
@@ -214,6 +216,7 @@ function BotUIComponent() {
         m('div', [
           ...existingFunctionsDom,
           m('div', { style: 'float: right;' }, [
+            m('span', `V${BOT_VERSION}`),
             m('button', { class: 'action', onclick: this.add_new_function.bind(this) }, m('i', { class: 'fa-solid fa-add' }))
           ])
         ])
