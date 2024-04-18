@@ -154,7 +154,10 @@ function BotUIFunctionComponent(node) {
   };
 
   this.open_editor = () => {
-    m.mount(bot_ui_modal_root, m(BotPopupModalComponent, { data: node.attrs.data, onsave: this.save_edited_data }));
+      const editorComponent = {
+          view: () => m(BotPopupModalComponent, { data: node.attrs.data, onsave: this.save_edited_data })
+      };
+      m.mount(bot_ui_modal_root, editorComponent);
   };
 
   return {
