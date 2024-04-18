@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.9';
+const BOT_VERSION = '0.0.10';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -295,6 +295,7 @@ export async function initialize_async(bot_id) {
   console.info('mounting bot framework ui');
   // implement AMD loading
   await load_script_async('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js');
+console.log(window.requirejs);
   await wait_for_global_async('requirejs');
   // other imports
   await import('https://unpkg.com/mithril/mithril.js');
