@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.4';
+const BOT_VERSION = '0.0.5';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -261,7 +261,17 @@ function import_ace_async() {
     });
 }
 
-function waitForGlobal(name, timeout = 5000, interval = 100) {
+function load_script_async(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+function wait_for_global_async(name, timeout = 5000, interval = 100) {
     return new Promise((resolve, reject) => {
         let elapsed = 0;
         const check = () => {
@@ -286,8 +296,8 @@ export async function initialize_async(bot_id) {
   await initialize_databases_async(bot_id);
   console.info('mounting bot framework ui');
   // implement AMD loading
-  await import('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js');
-  await waitForGlobal('requirejs');
+  await load_script_async('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js');
+  await wait_for_global_async('requirejs');
   // other imports
   await import('https://unpkg.com/mithril/mithril.js');
   await import('https://kit.fontawesome.com/8768117172.js');
