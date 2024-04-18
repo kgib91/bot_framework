@@ -1,4 +1,4 @@
-const VERSION = '0.0.1';
+const BOT_VERSION = '0.0.1';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
