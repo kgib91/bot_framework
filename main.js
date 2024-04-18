@@ -113,7 +113,16 @@ function BotPopupModalComponent(node) {
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/javascript");
-    editor.setValue(node.attrs.data.code || ''); // Load existing code or empty string
+    
+    // Ensure autocomplete is enabled
+    ace.require("ace/ext/language_tools");
+    editor.setOptions({
+      enableBasicAutocompletion: true,
+      enableSnippets: true,
+      enableLiveAutocompletion: false
+    });
+  
+    editor.setValue(vnode.attrs.data.code || '');
   }
 
   // Save function that can be passed down to handle saving logic
@@ -154,10 +163,14 @@ function BotUIFunctionComponent(node) {
   };
 
   this.open_editor = () => {
+    // Re-fetch the latest function data
+    read_db_store_all_async(bot_db, bot_db_function_store_name).then(functions => {
+      const currentFunction = functions.find(f => f.id === node.attrs.data.id);
       const editorComponent = {
-          view: () => m(BotPopupModalComponent, { data: node.attrs.data, onsave: this.save_edited_data })
+        view: () => m(BotPopupModalComponent, { data: currentFunction || node.attrs.data, onsave: this.save_edited_data })
       };
       m.mount(bot_ui_modal_root, editorComponent);
+    });
   };
 
   return {
