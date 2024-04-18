@@ -241,6 +241,14 @@ async function initialize_ui_async() {
   m.mount(bot_ui_document_root, BotUIComponent);
 }
 
+async function import_ace_async() {
+  await import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
+  // extensions
+  await import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ext-language_tools.js');
+  // configure
+  ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
+}
+
 export async function initialize_async(bot_id) {
   validate_bot_id(bot_id);
   console.log('begin initializing bot: ', bot_id);
@@ -249,7 +257,7 @@ export async function initialize_async(bot_id) {
   console.info('mounting bot framework ui');
   await import('https://unpkg.com/mithril/mithril.js');
   await import('https://kit.fontawesome.com/8768117172.js');
-  await import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
+  await import_ace_async();
   await initialize_ui_async();
   console.log('end initializing bot');
 }
