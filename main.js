@@ -1,4 +1,6 @@
-const BOT_VERSION = '0.0.13';
+const BOT_VERSION = '0.0.15';
+
+let System;
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -240,37 +242,9 @@ async function initialize_ui_async() {
   m.mount(bot_ui_document_root, BotUIComponent);
 }
 
-function load_script_async(url) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = url;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
-
-function wait_for_global_async(name, timeout = 10000, interval = 200) {
- return new Promise((resolve, reject) => {
-        let startTime = performance.now();
-        function check() {
-            if (window[name] !== undefined) {
-                resolve(window[name]);
-            } else if (performance.now() - startTime > timeout) {
-                reject(new Error(`${name} did not load within ${timeout} ms`));
-            } else {
-                requestAnimationFrame(check);
-            }
-        }
-        requestAnimationFrame(check);
-    });
-}
-
 async function load_systemjs() {
-    await import('https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js');
-}
-
-function configure_systemjs() {
+    System = await import('https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js');
+  
     System.config({
         baseURL: 'https://cdnjs.cloudflare.com/ajax/libs/',
         paths: {
@@ -301,7 +275,6 @@ export async function initialize_async(bot_id) {
 
     // Load and configure SystemJS
     await load_systemjs();
-    configure_systemjs();
 
     // Load other dependencies
     await import('https://unpkg.com/mithril/mithril.js');
