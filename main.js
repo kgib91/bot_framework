@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.10';
+const BOT_VERSION = '0.0.11';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -287,20 +287,52 @@ function wait_for_global_async(name, timeout = 10000, interval = 200) {
     });
 }
 
-export async function initialize_async(bot_id) {
-  validate_bot_id(bot_id);
-  console.log('begin initializing bot: ', bot_id);
-  console.info('opening local databases');
-  await initialize_databases_async(bot_id);
-  console.info('mounting bot framework ui');
-  // implement AMD loading
-  await load_script_async('https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js');
-console.log(window.requirejs);
-  await wait_for_global_async('requirejs');
-  // other imports
-  await import('https://unpkg.com/mithril/mithril.js');
-  await import('https://kit.fontawesome.com/8768117172.js');
-  await import_ace_async();
-  await initialize_ui_async();
-  console.log('end initializing bot');
+async function load_systemjs() {
+    await import('https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js');
 }
+
+function configure_systemjs() {
+    System.config({
+        baseURL: 'https://cdnjs.cloudflare.com/ajax/libs/',
+        paths: {
+            'ace': 'ace/1.4.14/ace.js'
+        }
+    });
+}
+
+async function import_ace_async() {
+    try {
+        const ace = await System.import('ace');
+        ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
+        ace.require('ace/ext/language_tools');
+        console.log('Ace and extensions loaded successfully');
+        return ace;
+    } catch (e) {
+        console.error('Failed to load Ace Editor:', e);
+        throw e;
+    }
+}
+
+export async function initialize_async(bot_id) {
+    validate_bot_id(bot_id);
+    console.log('begin initializing bot: ', bot_id);
+    console.info('opening local databases');
+    await initialize_databases_async(bot_id);
+    console.info('mounting bot framework ui');
+
+    // Load and configure SystemJS
+    await load_systemjs();
+    configure_systemjs();
+
+    // Load other dependencies
+    await import('https://unpkg.com/mithril/mithril.js');
+    await import('https://kit.fontawesome.com/8768117172.js');
+    
+    // Import ACE using SystemJS
+    const ace = await import_ace_async();
+    console.log('Ace Editor loaded:', ace);
+
+    await initialize_ui_async();
+    console.log('end initializing bot');
+}
+
