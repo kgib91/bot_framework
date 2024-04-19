@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.11';
+const BOT_VERSION = '0.0.13';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -240,27 +240,6 @@ async function initialize_ui_async() {
   m.mount(bot_ui_document_root, BotUIComponent);
 }
 
-function import_ace_async() {
-    return new Promise((resolve, reject) => {
-        requirejs.config({
-            baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/',
-            paths: {
-                'ace': 'ace'
-            }
-        });
-
-        requirejs(['ace/ace'], function(ace) {
-            try {
-                ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
-                ace.require("ace/ext/language_tools"); // Load extension after ace is loaded
-                resolve(ace); // Resolve the promise with the ace object
-            } catch (e) {
-                reject(e); // Reject the promise if there's an error
-            }
-        }, reject); // Also reject the promise on requirejs errors
-    });
-}
-
 function load_script_async(url) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -315,7 +294,7 @@ async function import_ace_async() {
 
 export async function initialize_async(bot_id) {
     validate_bot_id(bot_id);
-    console.log('begin initializing bot: ', bot_id);
+    console.log('begin initializing bot: ', bot_id, BOT_VERSION);
     console.info('opening local databases');
     await initialize_databases_async(bot_id);
     console.info('mounting bot framework ui');
@@ -329,8 +308,7 @@ export async function initialize_async(bot_id) {
     await import('https://kit.fontawesome.com/8768117172.js');
     
     // Import ACE using SystemJS
-    const ace = await import_ace_async();
-    console.log('Ace Editor loaded:', ace);
+    await import_ace_async();
 
     await initialize_ui_async();
     console.log('end initializing bot');
