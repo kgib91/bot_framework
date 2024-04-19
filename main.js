@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.16';
+const BOT_VERSION = '0.0.17';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -244,15 +244,17 @@ function load_script_async(url) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = url;
+        script.type = 'module';
         script.onload = () => resolve(script);
         script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
-        document.head.appendChild(script);
+        document.body.appendChild(script);
     });
 }
 
 async function load_systemjs() {
-    await load_script_async('https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js');
-    
+  let val = await load_script_async('https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js');
+    console.log('val:', val);
+
     System.config({
         baseURL: 'https://cdnjs.cloudflare.com/ajax/libs/',
         paths: {
