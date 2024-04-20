@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.19';
+const BOT_VERSION = '0.0.20';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -10,7 +10,7 @@ const indexed_db_readwrite_str = 'readwrite';
 const bot_ui_stylesheet = `
   #bot_ui_document_root { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2147483646; pointer-events: none; background: transparent; }
   #bot_ui_modal_root { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2147483647; pointer-events: none; background: transparent; }
-  #botmodal__ { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); pointer-events: auto; }
+  .botmodal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); pointer-events: auto; }
   #botui__ { position: fixed; top: 0; left: 0; border: 1px solid red; padding: 2mm; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); pointer-events: auto; }
   #botui__ * { padding: 0px; margin: 0; }
   #botui__ .pill>:first-child { border-top-left-radius: 3px; border-bottom-left-radius: 3px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
@@ -135,10 +135,10 @@ function BotPopupModalComponent(node) {
     view: () => {
       return m('div', { class: 'botmodal' }, [
         m('div', { class: 'editorContainer' }, [
-          m('div', { class: 'editorHeader' }, `Editing: ${node.attrs.data.name}`),
-          m('div', { id: 'editor', class: 'editor' }),
-          m('button', { onclick: save }, 'Save'),
-          m('button', { onclick: close }, 'Close')
+          m('div', { class: 'editorHeader' }, ` ${node.attrs.data.name}`),
+          m('div', { id: 'editor', style: { height: '200px' }, class: 'editor' }),
+          m('button', { onclick: save, class: 'primary' }, 'Save'),
+          m('button', { onclick: close, class: 'secondary' }, 'Close')
         ])
       ]);
     }
@@ -169,9 +169,9 @@ function BotUIFunctionComponent(node) {
 
   return {
     view: () => {
-      return m('div', { class: `pill ${status}` }, [
-        m('button', {}, node.attrs.data.name),
-        m('button', { onclick: this.open_editor.bind(this) }, m('i', { class: 'fa-solid fa-pencil fa-sm' }))
+      return m('button', { class: `pill ${status}`, onclick: this.open_editor.bind(this) }, [
+        m('i', { class: 'fa-solid fa-code fa-sm' }),
+        m('span', {}, node.attrs.data.name)
       ]);
     }
   };
