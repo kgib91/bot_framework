@@ -10,14 +10,14 @@ const indexed_db_readwrite_str = 'readwrite';
 const bot_ui_stylesheet = `
   #bot_ui_document_root { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2147483646; pointer-events: none; background: transparent; }
   #bot_ui_modal_root { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 2147483647; pointer-events: none; background: transparent; }
-  #botmodal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); pointer-events: auto; }
-  #botui { position: fixed; top: 0; left: 0; border: 1px solid red; padding: 2mm; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); pointer-events: auto; }
-  #botui * { padding: 0px; margin: 0; }
-  #botui .pill>:first-child { border-top-left-radius: 3px; border-bottom-left-radius: 3px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
-  #botui .pill>:last-child { border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
-  #botui .pill .status { display: none; cursor: default; }
-  #botui .pill button { user-select: none; cursor: pointer; border: 1px solid black; background-color: rgba(0, 0, 0, 0.8); color: white; padding-left: 2mm; padding-right: 2mm; height: 18px; line-height: 18px; vertical-align: middle; margin-bottom: 2mm; font-size: 12px; }
-  #botui button.action { user-select: none; cursor: pointer; border: 1px solid black; width: 20px; height: 20px; background-color: rgba(0, 0, 0, 0.8); line-height: 20px; vertical-align: middle; color: white; }
+  #botmodal__ { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); pointer-events: auto; }
+  #botui__ { position: fixed; top: 0; left: 0; border: 1px solid red; padding: 2mm; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); pointer-events: auto; }
+  #botui__ * { padding: 0px; margin: 0; }
+  #botui__ .pill>:first-child { border-top-left-radius: 3px; border-bottom-left-radius: 3px; border-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  #botui__ .pill>:last-child { border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+  #botui__ .pill .status { display: none; cursor: default; }
+  #botui__ .pill button { user-select: none; cursor: pointer; border: 1px solid black; background-color: rgba(0, 0, 0, 0.8); color: white; padding-left: 2mm; padding-right: 2mm; height: 18px; line-height: 18px; vertical-align: middle; margin-bottom: 2mm; font-size: 12px; }
+  #botui__ button.action { user-select: none; cursor: pointer; border: 1px solid black; width: 20px; height: 20px; background-color: rgba(0, 0, 0, 0.8); line-height: 20px; vertical-align: middle; color: white; }
 `;
 
 var bot_db = null;
@@ -133,10 +133,10 @@ function BotPopupModalComponent(node) {
   return {
     oncreate,
     view: () => {
-      return m('div', { id: 'botmodal' }, [
-        m('div', { id: 'editorContainer' }, [
-          m('div', { id: 'editorHeader' }, `Editing: ${node.attrs.data.name}`),
-          m('div', { id: 'editor', style: 'height: 200px;' }),
+      return m('div', { class: 'botmodal' }, [
+        m('div', { class: 'editorContainer' }, [
+          m('div', { class: 'editorHeader' }, `Editing: ${node.attrs.data.name}`),
+          m('div', { class: 'editor' }),
           m('button', { onclick: save }, 'Save'),
           m('button', { onclick: close }, 'Close')
         ])
@@ -204,11 +204,11 @@ function BotUIComponent() {
       let loadedFunctions = this.state.data || [];
       let existingFunctionsDom = loadedFunctions.map(x => m(BotUIFunctionComponent, { data: x }));
       
-      return m('div', { id: 'botui' }, [
+      return m('div', { id: 'botui__' }, [
         m('div', [
           ...existingFunctionsDom,
           m('div', { style: 'float: right;' }, [
-            m('span', `V${BOT_VERSION}`),
+            m('span', { class: 'bot_version' }, `v${BOT_VERSION}`),
             m('button', { class: 'action', onclick: this.add_new_function.bind(this) }, m('i', { class: 'fa-solid fa-add' }))
           ])
         ])
