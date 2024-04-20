@@ -106,33 +106,26 @@ function BotUIFunctionEditorComponent(node) {
   };
 }
 
-
 function BotPopupModalComponent(node) {
   let editor = null;
 
-  // Initialize the editor when the modal is created
   function oncreate(vnode) {
     editor = ace.edit("editor");
     editor.setTheme("ace/theme/monokai");
     editor.session.setMode("ace/mode/javascript");
-    
-    // Ensure autocomplete is enabled
     editor.setOptions({
       enableBasicAutocompletion: true,
       enableSnippets: true,
       enableLiveAutocompletion: false
     });
-  
     editor.setValue(vnode.attrs.data.code || '');
   }
 
-  // Save function that can be passed down to handle saving logic
   function save() {
     node.attrs.onsave(editor.getValue());
-    m.mount(bot_ui_modal_root, null); // Unmount the editor modal after saving
+    m.mount(bot_ui_modal_root, null);
   }
 
-  // Close without saving
   function close() {
     m.mount(bot_ui_modal_root, null);
   }
@@ -141,8 +134,9 @@ function BotPopupModalComponent(node) {
     oncreate,
     view: () => {
       return m('div', { id: 'botmodal' }, [
-        m('div', { style: 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background: white; box-shadow: 0 0 15px rgba(0,0,0,0.2);' }, [
-          m('div', { id: 'editor', style: 'height: 200px;' }), // Editor placeholder
+        m('div', { id: 'editorContainer' }, [
+          m('div', { id: 'editorHeader' }, `Editing: ${node.attrs.data.name}`),
+          m('div', { id: 'editor', style: 'height: 200px;' }),
           m('button', { onclick: save }, 'Save'),
           m('button', { onclick: close }, 'Close')
         ])
@@ -150,7 +144,6 @@ function BotPopupModalComponent(node) {
     }
   };
 }
-
 
 function BotUIFunctionComponent(node) {
   let status = 'idle';
@@ -252,7 +245,7 @@ function load_script_async(url) {
 }
 
 async function import_ace_async() {
-    let ace = await System.import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
+  let ace = await System.import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
   try {
         ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
         ace.require('ace/ext/language_tools');
