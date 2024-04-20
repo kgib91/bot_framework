@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.17';
+const BOT_VERSION = '0.0.18';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -251,28 +251,14 @@ function load_script_async(url) {
     });
 }
 
-async function load_systemjs() {
-  let val = await load_script_async('https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js');
-    console.log('val:', val);
-
-    System.config({
-        baseURL: 'https://cdnjs.cloudflare.com/ajax/libs/',
-        paths: {
-            'ace': 'ace/1.4.14/ace.js'
-        }
-    });
-}
-
 async function import_ace_async() {
-    try {
-        const ace = await System.import('ace');
+    let ace = await System.import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
+  try {
         ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
         ace.require('ace/ext/language_tools');
-        console.log('Ace and extensions loaded successfully');
-        return ace;
-    } catch (e) {
-        console.error('Failed to load Ace Editor:', e);
-        throw e;
+        console.log('Ace Editor loaded and configured');
+    } catch(err) {
+        console.error('Failed to load Ace Editor:', err);
     }
 }
 
@@ -284,7 +270,7 @@ export async function initialize_async(bot_id) {
     console.info('mounting bot framework ui');
 
     // Load and configure SystemJS
-    await load_systemjs();
+    await load_script_async('https://cdn.jsdelivr.net/npm/systemjs/dist/system.min.js');
 
     // Load other dependencies
     await import('https://unpkg.com/mithril/mithril.js');
