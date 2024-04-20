@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.20';
+const BOT_VERSION = '0.0.21';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -177,44 +177,43 @@ function BotUIFunctionComponent(node) {
   };
 }
 
+// Add context menu for creating new functions
+function BotUIAddMenuComponent() {
+  return {
+    view: () => m('div', { class: 'context-menu' }, [
+      m('button', { onclick: () => botUIComponent.add_new_function('Function') }, 'Function'),
+      m('button', { onclick: () => botUIComponent.add_new_function('Pom'), disabled: true }, 'POM'),
+      m('button', { onclick: () => botUIComponent.add_new_function('Flow'), disabled: true }, 'Flow')
+    ])
+  };
+}
+
 function BotUIComponent() {
+  this.state = { data: [] };
+
   this.load_async = async function() {
-    console.log('begin loading functions');
     this.state.data = await read_db_store_all_async(bot_db, bot_db_function_store_name);
     m.redraw();
-    console.log('end loading functions');
-  }
-      
-  this.add_new_function = function() {
-    console.log('invoked add_new_function');
-    (async () => {
-      await db_store_cmd_async(bot_db, bot_db_function_store_name, 'add', {
-        name: 'New Function',
-        type: function_type_sequence_str
-      });
-      await this.load_async();
-    })();
+    console.log('Loaded functions');
   };
-  
+
+  this.add_new_function = async function(type) {
+    const newItem = { name: `New ${type}`, type: function_type_sequence_str };
+    const addedItem = await db_store_cmd_async(bot_db, bot_db_function_store_name, 'add', newItem);
+    console.log(`Added new ${type}: ID ${addedItem}`);
+    await this.load_async();
+  };
+
   return {
-    oninit: async (ctrl) => {
-      await this.load_async();
-    },
-    view: () => {
-      let loadedFunctions = this.state.data || [];
-      let existingFunctionsDom = loadedFunctions.map(x => m(BotUIFunctionComponent, { data: x }));
-      
-      return m('div', { id: 'botui__' }, [
-        m('div', [
-          ...existingFunctionsDom,
-          m('div', { style: 'float: right;' }, [
-            m('span', { class: 'bot_version' }, `v${BOT_VERSION}`),
-            m('button', { class: 'action', onclick: this.add_new_function.bind(this) }, m('i', { class: 'fa-solid fa-add' }))
-          ])
-        ])
+    oninit: () => this.load_async(),
+    view: () => m('div', { id: 'botui__' }, [
+      this.state.data.map(x => m(BotUIFunctionComponent, { data: x })),
+      m('div', { style: 'float: right;' }, [
+        m('span', `V${BOT_VERSION}`),
+        m('button', { class: 'action', onclick: () => m.mount(document.body, BotUIAddMenuComponent) }, m('i', { class: 'fa-solid fa-add' }))
       ])
-    }
-  }; 
+    ])
+  };
 }
 
 async function initialize_ui_async() {
