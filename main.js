@@ -1,4 +1,4 @@
-const BOT_VERSION = '0.0.18';
+const BOT_VERSION = '0.0.19';
 
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
@@ -136,7 +136,7 @@ function BotPopupModalComponent(node) {
       return m('div', { class: 'botmodal' }, [
         m('div', { class: 'editorContainer' }, [
           m('div', { class: 'editorHeader' }, `Editing: ${node.attrs.data.name}`),
-          m('div', { class: 'editor' }),
+          m('div', { id: 'editor', class: 'editor' }),
           m('button', { onclick: save }, 'Save'),
           m('button', { onclick: close }, 'Close')
         ])
@@ -247,12 +247,12 @@ function load_script_async(url) {
 async function import_ace_async() {
   let ace = await System.import('https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js');
   try {
-        ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
-        ace.require('ace/ext/language_tools');
-        console.log('Ace Editor loaded and configured');
-    } catch(err) {
-        console.error('Failed to load Ace Editor:', err);
-    }
+    ace.config.set('basePath', 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/');
+    ace.require('ace/ext/language_tools');
+    console.log('Ace Editor loaded and configured');
+  } catch(err) {
+    console.error('Failed to load Ace Editor:', err);
+  }
 }
 
 export async function initialize_async(bot_id) {
