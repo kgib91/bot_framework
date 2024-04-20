@@ -3,7 +3,7 @@ const BOT_VERSION = '0.0.21';
 const idb = window.indexedDB;
 const bot_db_size = 1 * 1024 * 1024; // 1mb
 const bot_db_version = 1;
-const bot_db_function_store_name = 'function_store';
+const bot_db_object_store_name = 'object_store';
 
 const indexed_db_readonly_str = 'readonly';
 const indexed_db_readwrite_str = 'readwrite';
@@ -77,7 +77,7 @@ function open_db_async(name, version, upgrade_handler) {
 function bot_db_upgrade_handler(db) {
   console.log("migrating bot database");
   if(!db.objectStoreNames.contains(bot_db_function_store_name)) {
-    let store = db.createObjectStore(bot_db_function_store_name, { keyPath: 'id', autoIncrement: true });    
+    let store = db.createObjectStore(bot_db_object_store_name, { keyPath: 'id', autoIncrement: true });    
     store.createIndex('name_idx', 'name', { unique: true });
     store.createIndex('type_idx', 'type', { unique: false });
   }
@@ -95,8 +95,9 @@ function validate_bot_id(id) {
   }
 }
 
-const function_type_sequence_str = 'sequence';
-const function_type_toggle_str = 'toggle';
+const object_type_function_str = 'function';
+const object_type_pom_str = 'pom';
+const object_type_flow_str = 'flow';
 
 function BotUIFunctionEditorComponent(node) {
   return {
@@ -145,20 +146,20 @@ function BotPopupModalComponent(node) {
   };
 }
 
-function BotUIFunctionComponent(node) {
+function BotUIObjectComponent(node) {
   let status = 'idle';
 
   this.save_edited_data = (newCode) => {
     console.log('do save', newCode);
     // Implement saving logic here, possibly updating IndexedDB
-    db_store_cmd_async(bot_db, bot_db_function_store_name, 'put', { ...node.attrs.data, code: newCode }).then(() => {
+    db_store_cmd_async(bot_db, bot_db_object_store_name, 'put', { ...node.attrs.data, code: newCode }).then(() => {
       console.log('Saved successfully');
     });
   };
 
   this.open_editor = () => {
     // Re-fetch the latest function data
-    read_db_store_all_async(bot_db, bot_db_function_store_name).then(functions => {
+    read_db_store_all_async(bot_db, bot_db_object_store_name).then(functions => {
       const currentFunction = functions.find(f => f.id === node.attrs.data.id);
       const editorComponent = {
         view: () => m(BotPopupModalComponent, { data: currentFunction || node.attrs.data, onsave: this.save_edited_data })
@@ -181,25 +182,42 @@ function BotUIFunctionComponent(node) {
 function BotUIAddMenuComponent() {
   return {
     view: () => m('div', { class: 'context-menu' }, [
-      m('button', { onclick: () => botUIComponent.add_new_function('Function') }, 'Function'),
-      m('button', { onclick: () => botUIComponent.add_new_function('Pom'), disabled: true }, 'POM'),
-      m('button', { onclick: () => botUIComponent.add_new_function('Flow'), disabled: true }, 'Flow')
+      m('button', { onclick: () => botUIComponent.add_new_object(object_type_function_str) }, 'Function'),
+      m('button', { onclick: () => botUIComponent.add_new_object(object_type_pom_str), disabled: true }, 'POM'),
+      m('button', { onclick: () => botUIComponent.add_new_object(object_type_flow_str), disabled: true }, 'Flow')
     ])
   };
+}
+
+async function get_last_id_async(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([storeName], "readonly");
+    const store = transaction.objectStore(storeName);
+    const event = await store.openCursor(null, 'prev'); // 'prev' opens the cursor at the end
+    const cursor = event.target.result;
+    if (cursor) {
+      return cursor.key;
+    } else if(event.target.errorCode) {
+      reject();
+    } else {
+      throw "No records in the store.";
+    }
+  });
 }
 
 function BotUIComponent() {
   this.state = { data: [] };
 
   this.load_async = async function() {
-    this.state.data = await read_db_store_all_async(bot_db, bot_db_function_store_name);
+    this.state.data = await read_db_store_all_async(bot_db, bot_db_object_store_name);
     m.redraw();
     console.log('Loaded functions');
   };
 
-  this.add_new_function = async function(type) {
-    const newItem = { name: `New ${type}`, type: function_type_sequence_str };
-    const addedItem = await db_store_cmd_async(bot_db, bot_db_function_store_name, 'add', newItem);
+  this.add_new_object = async function(type) {
+    const lastId = await get_last_id_async(bot_db, bot_db_object_store_name);
+    const newItem = { name: `New ${type} (${lastId+1})`, type: type };
+    const addedItem = await db_store_cmd_async(bot_db, bot_db_object_store_name, 'add', newItem);
     console.log(`Added new ${type}: ID ${addedItem}`);
     await this.load_async();
   };
@@ -207,7 +225,7 @@ function BotUIComponent() {
   return {
     oninit: () => this.load_async(),
     view: () => m('div', { id: 'botui__' }, [
-      this.state.data.map(x => m(BotUIFunctionComponent, { data: x })),
+      this.state.data?.map(x => m(BotUIObjectComponent, { data: x })),
       m('div', { style: 'float: right;' }, [
         m('span', `V${BOT_VERSION}`),
         m('button', { class: 'action', onclick: () => m.mount(document.body, BotUIAddMenuComponent) }, m('i', { class: 'fa-solid fa-add' }))
